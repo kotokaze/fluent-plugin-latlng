@@ -4,12 +4,11 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 Gem::Specification.new do |spec|
   spec.name    = "fluent-plugin-latlng"
   spec.version = "0.1.0"
-  spec.authors = ["TODO: Write your name"]
-  spec.email   = ["TODO: Write your email"]
+  spec.authors = ["kotokaze"]
+  spec.email   = ["62094392+kotokaze@users.noreply.github.com"]
 
-  spec.summary       = %q{TODO: Write a short summary, because Rubygems requires one.}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.summary       = "Fluentd plugin to convert coordinates to country"
+  spec.homepage      = "https://github.com/kotokaze/fluent-plugin-latlng"
   spec.license       = "Apache-2.0"
 
   test_files, files  = `git ls-files -z`.split("\x0").partition do |f|
@@ -24,4 +23,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 13.1.0"
   spec.add_development_dependency "test-unit", "~> 3.5.7"
   spec.add_runtime_dependency "fluentd", [">= 0.14.10", "< 2"]
+  spec.add_runtime_dependency "geocoder", ["~> 1.8", ">= 1.8.3"]
 end

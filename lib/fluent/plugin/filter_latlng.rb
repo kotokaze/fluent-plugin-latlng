@@ -14,14 +14,63 @@
 # limitations under the License.
 
 require 'fluent/plugin/filter'
+require 'geocoder'
 
 module Fluent
   module Plugin
     class LatlngFilter < Fluent::Plugin::Filter
       Fluent::Plugin.register_filter('latlng', self)
 
-      def filter(tag, time, record)
+      helpers :record_accessor
+
+      desc 'The field to read the coordinates and update (in jsonpath like syntax)'
+      config_param :coordinates, :string, default: '$.address.coordinates'
+
+      desc 'The lookup method name to use'
+      config_param :lookup, :string, default: 'esri'
+
+      desc 'The API key to use'
+      config_param :api_key, :string, default: nil, secret: true
+
+      def initialize
+        super
+
+        Geocoder.configure(
+          :lookup => :"#{@lookup}",
+          :api_key => @api_key,
+        )
+
+        @coordinates_accessor = record_accessor_create(@coordinates)
       end
+
+      def filter(tag, time, record)
+        record = add_country_code(record)
+        record
+      end
+
+      def add_country_code(record)
+        coordinates = @coordinates_accessor.call(record)
+        return record if coordinates.nil?
+
+        result = Geocoder.search([coordinates['lat'], coordinates['lng']]).first
+        log.trace "Answer: #{result.inspect}"
+
+        # Add to coordinates hash
+        coordinates['decoded'] = {
+          'type' => result.place_type,
+          'country' => result.country,
+          'state' => result.state,
+          'city' => result.city,
+          'place_name' => result.place_name,
+        }
+        log.debug "Updated coordinates: #{coordinates}"
+
+        # Update the record with the new coordinates
+        @coordinates_accessor.set(record, coordinates)
+
+        return record
+      end
+
     end
   end
 end
